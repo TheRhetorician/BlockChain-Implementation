@@ -30,12 +30,24 @@ class Users:
     def mineBlock(self):
         return
 
-    def verifyTransaction(self):
+    def verifyTransaction(self, currentBlock):
         print("in verify")
-        return 
+        f = open("BlockChain.txt", 'rb')
+        blocks = pickle.load(f)
+        if currentBlock.prevHash == blocks[-1].Hash:
+            f.close()
+            return True
+        # print(blocks[-1].timestamp, blocks[-1].data, blocks[-1].Hash, blocks[-1].prevHash)
+        f.close()
+        return False
 
     def verifyBlockChain(self):
-        return
+        f = open("BlockChain.txt", 'rb')
+        blocks = pickle.load(f)
+        for i in range(1,len(blocks)):
+            if blocks[i].prevHash != blocks[i-1].Hash:
+                return False
+        return True
 
 class Admin:
     def __init__(self):
@@ -136,8 +148,8 @@ class Admin:
 
         
 
-# val = {"Name":'Hardik', "Age":22}
-# result = json.dumps(val)
+val = {"Name":'Hardik', "Age":22}
+result = json.dumps(val)
 # print(result)
 # bl = Block(result)
 ad = Admin()
@@ -146,6 +158,18 @@ print("After initialisation")
 # print("After create User")
 f = open("Users.txt", "rb")
 users = pickle.load(f)
-for i in range(0,len(users)):
-    print(users[i].timestamp, users[i].username, users[i].password)
+# for i in range(0,len(users)):
+#     print(users[i].timestamp, users[i].username, users[i].password)
 f.close()
+f = open('BlockChain.txt', 'rb')
+blocks = pickle.load(f)
+for i in range(0,len(blocks)):
+    print(blocks[i].data, blocks[i].timestamp, blocks[i].Hash, blocks[i].prevHash)
+f.close()
+prevHash = blocks[-1].Hash
+block = Block(result, prevHash)
+# f = open('BlockChain.txt', 'wb')
+# blocks.append(block)
+# pickle.dump(blocks, f)
+# f.close()
+print(users[1].verifyBlockChain())
