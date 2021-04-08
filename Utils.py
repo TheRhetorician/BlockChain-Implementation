@@ -20,6 +20,7 @@ class Block:
 
 class Users:
     def __init__(self, username, password):
+        self.timestamp = datetime.datetime.now().isoformat()
         self.username = username
         self.password = hashlib.sha256(password.encode()).hexdigest()
 
@@ -30,6 +31,7 @@ class Users:
         return
 
     def verifyTransaction(self):
+        print("in verify")
         return 
 
     def verifyBlockChain(self):
@@ -45,16 +47,25 @@ class Admin:
             block = Block("Genesis", '0')
             pickle.dump([block], f)
             f.close()
+        if os.stat("Users.txt").st_size == 0:
+            f = open('Users.txt', 'wb')
+            user = self.createUser('Genesis', 'admin')
+            pickle.dump([user], f)
+            f.close()
 
 
     def createUser(self, username, password):
         print("Inside createUser")
         user = Users(username, password)
         print(user.username, user.password)
-        # f = open('users.txt', 'rb')
-        # users = pickle.load(f)
-        # print(users)
-        # f.close()
+        if not os.stat("Users.txt").st_size == 0:
+            f = open('Users.txt', 'rb')
+            users = pickle.load(f)
+            f.close()
+            users.append(user)
+            f = open('Users.txt', 'wb')
+            pickle.dump(users, f)
+            f.close()
         return user
 
     def create_socket(self, address):
@@ -131,9 +142,10 @@ class Admin:
 # bl = Block(result)
 ad = Admin()
 print("After initialisation")
-ad.createUser("Hardik", "Hello")
-print("After create User")
-f = open("BlockChain.txt", "rb")
-block = pickle.load(f)
-print(block[0].data, block[0].timestamp, block[0].Hash)
+# ad.createUser("Hardik", "Hello")
+# print("After create User")
+f = open("Users.txt", "rb")
+users = pickle.load(f)
+for i in range(0,len(users)):
+    print(users[i].timestamp, users[i].username, users[i].password)
 f.close()
