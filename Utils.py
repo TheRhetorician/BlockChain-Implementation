@@ -97,8 +97,9 @@ class Admin:
     def handle_conversation(self, sock, address):
         try:
             while True:
-                sock.sendall('Start Proof of work')
+                sock.sendall(b'Start Proof of work')
                 self.handle_request(sock)
+                # break
         except EOFError:
             print('Client socket to {} has closed'.format(address))
         except Exception as e:
