@@ -23,27 +23,26 @@ class Users:
         self.timestamp = datetime.datetime.now().isoformat()
         self.username = username
         self.password = hashlib.sha256(password.encode()).hexdigest()
+        self.blockChain = []
 
     def createBlock(self, data):
         return Block(json.dumps(data))
 
-    def mineBlock(self):
-        return
-
     def verifyTransaction(self, currentBlock):
         print("in verify")
-        f = open("BlockChain.txt", 'rb')
-        blocks = pickle.load(f)
+        # f = open("BlockChain.txt", 'rb')
+        # blocks = pickle.load(f)
+        blocks = self.blockChain
         if currentBlock.prevHash == blocks[-1].Hash:
-            f.close()
             return True
         # print(blocks[-1].timestamp, blocks[-1].data, blocks[-1].Hash, blocks[-1].prevHash)
-        f.close()
+        # f.close()
         return False
 
     def verifyBlockChain(self):
-        f = open("BlockChain.txt", 'rb')
-        blocks = pickle.load(f)
+        # f = open("BlockChain.txt", 'rb')
+        # blocks = pickle.load(f)
+        blocks = self.blockChain
         for i in range(1,len(blocks)):
             if blocks[i].prevHash != blocks[i-1].Hash:
                 return False
@@ -69,7 +68,12 @@ class Admin:
     def createUser(self, username, password):
         print("Inside createUser")
         user = Users(username, password)
-        print(user.username, user.password)
+        if not os.stat("BlockChain.txt").st_size == 0:
+            f = open('BlockChain.txt', 'rb')
+            blocks = pickle.load(f)
+            f.close()
+            user.blockChain = blocks
+        # print(user.username, user.password)
         if not os.stat("Users.txt").st_size == 0:
             f = open('Users.txt', 'rb')
             users = pickle.load(f)
@@ -95,10 +99,12 @@ class Admin:
             self.handle_conversation(sock,address)
 
     def handle_conversation(self, sock, address):
+        i=5
         try:
-            while True:
-                sock.sendall(b'Start Proof of work')
-                self.handle_request(sock)
+            while i!=0:
+                sock.sendall('Start Proof of work - remaining iterations = {}'.format(i))
+                self.mineBlock(sock)
+                i-=1
                 # break
         except EOFError:
             print('Client socket to {} has closed'.format(address))
@@ -107,7 +113,7 @@ class Admin:
         finally:
             sock.close()
 
-    def handle_request(self, sock):
+    def mineBlock(self, sock):
         data = b''
         payload_size = struct.calcsize("L")
         print("Expecting Data")
@@ -155,22 +161,23 @@ result = json.dumps(val)
 # bl = Block(result)
 ad = Admin()
 print("After initialisation")
-# ad.createUser("Hardik", "Hello")
+# ad.createUser("Daksh", "Nobody")
 # print("After create User")
 f = open("Users.txt", "rb")
 users = pickle.load(f)
-# for i in range(0,len(users)):
-#     print(users[i].timestamp, users[i].username, users[i].password)
+for i in range(0,len(users)):
+    print(users[i].timestamp, users[i].username, users[i].password, users[i].blockChain)
+    print(users[i].verifyBlockChain())
 f.close()
-f = open('BlockChain.txt', 'rb')
-blocks = pickle.load(f)
-for i in range(0,len(blocks)):
-    print(blocks[i].data, blocks[i].timestamp, blocks[i].Hash, blocks[i].prevHash)
-f.close()
-prevHash = blocks[-1].Hash
-block = Block(result, prevHash)
+# f = open('BlockChain.txt', 'rb')
+# blocks = pickle.load(f)
+# for i in range(0,len(blocks)):
+#     print(blocks[i].data, blocks[i].timestamp, blocks[i].Hash, blocks[i].prevHash)
+# f.close()
+# prevHash = blocks[-1].Hash
+# block = Block(result, prevHash)
 # f = open('BlockChain.txt', 'wb')
 # blocks.append(block)
 # pickle.dump(blocks, f)
 # f.close()
-print(users[1].verifyBlockChain())
+# print(users[1].verifyBlockChain())
