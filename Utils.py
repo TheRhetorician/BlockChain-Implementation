@@ -5,19 +5,20 @@ import hashlib
 import json
 import socket
 from threading import Thread
-import os
+import os, sys
 import random
 
 class Block:
-    def __init__(self, data, prevHash=''):
+    def __init__(self, data, prevHash='', nonce = 0):
         self.data = data
         self.timestamp = datetime.datetime.now().isoformat()
         self.prevHash = prevHash
+        self.nonce = nonce
         self.Hash = self.calculateHash()
-        # print(self.Hash)
+        print(self.Hash, len(self.Hash))
 
     def calculateHash(self):
-        return hashlib.sha256((self.timestamp + self.prevHash + self.data).encode()).hexdigest()
+        return hashlib.sha256((self.timestamp + self.prevHash + self.data + str(self.nonce)).encode()).hexdigest()
 
 class Users:
     def __init__(self, username, password):
@@ -50,6 +51,12 @@ class Users:
         for i in range(1,len(blocks)):
             if blocks[i].prevHash != blocks[i-1].Hash:
                 return False
+        return True
+
+    def verifyPoW(self, block):
+        val = hashlib.sha256((block.timestamp + block.prevHash + block.data + str(block.nonce)).encode()).hexdigest()
+        if val != block.Hash:
+            return False
         return True
 
 class Admin:                #Miner
@@ -93,18 +100,33 @@ class Admin:                #Miner
         users = pickle.load(f)
         f.close()
         transactbool = 0
-        chainbool = 0
+        hashbool = 0
         for i in range(0,len(users)):
-            transact = users[i].verifyTransaction(block)
-            chain = users[i].verifyBlockChain()
-            if transact:
-                transactbool+=1
-            if chain:
-                chainbool+=1
-        print(transactbool, chainbool)
-        if transactbool > len(users)/2 and chainbool > len(users)/2:
+            # transact = users[i].verifyTransaction(block)
+            hashing = users[i].verifyPoW(block)
+            # if transact:
+            #     transactbool+=1
+            if hashing:
+                hashbool+=1
+        print(transactbool, hashbool)
+        if hashbool > len(users)/2: #and transactbool > len(users)/2 and :
             return True
         return False
+
+    def addBlock(self, block):
+        f = open('BlockChain.txt', 'rb')
+        blocks = pickle.load(f)
+        f.close()
+        blocks.append(block)
+        f = open('BlockChain.txt', 'wb')
+        pickle.dump(blocks, f)
+        f.close()
+        f = open('Users.txt', 'rb')
+        users = pickle.load(f)
+        f.close()
+        for i in range(0,len(users)):
+            users[i].blockChain = blocks
+        return
 
     def create_socket(self, address):
         listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -124,8 +146,8 @@ class Admin:                #Miner
         try:
             val = self.handle_request(sock)
             if not val:
+                print("Mining not verified by consensus of the users")
                 return
-                # break
         except EOFError:
             print('Client socket to {} has closed'.format(address))
         except Exception as e:
@@ -148,56 +170,21 @@ class Admin:                #Miner
         block_data = data[:msg_size]
         data = data[msg_size:]
         block = pickle.loads(block_data)
+        self.mineBlock(block)
         toProceed = self.checkData(block)
         if not toProceed:
             return False
-        print("Block verified by Users")
-        i = 3
-        sock.sendall(('Start Proof of work itertions = {}'.format(i)).encode())
-        print("Mining Started")
-        while i:
-            val = self.mineBlock(sock, i)
-            i-=1
-            if not val:
-                return False
-        print("Mining ended")
+        print("PoW done by miner verified by consensus of users")
+        self.addBlock(block)
+        sock.sendall('Block has been added to the BlockChain'.encode())
         return True
 
-    def power(self, x, y, p):
-        res = 1 
-        x = x % p
-        while (y > 0):
-            if (y & 1):
-                res = (res * x) % p
-            y = y >> 1
-            x = (x * x) % p
-        return res
-
-    def mineBlock(self, sock, i):
-        data = sock.recv(4096)
-        b = random.randint(0,1)
-        sock.sendall(str(b).encode())
-        data = data.decode()
-        # print(data)
-        data = data.split()
-        g = int(data[0])
-        y = int(data[1])
-        h = int(data[2])
-        print(g,y,h)
-        print('b in mineBlock is ', b)
-        data = sock.recv(4096)
-        data = data.decode()
-        data = data.split()
-        # print(data)
-        s = int(data[0])
-        print('s is ', s)
-        p=11
-        print("Mining {} started".format(i))
-        one = self.power(g,s,p)
-        two = ((h%p)*(y**b)%p)%p
-        print("Mining {} ended".format(i))
-        print(one, two)
-        return one == two
+    def mineBlock(self, block, difficulty = 4):
+        while block.Hash[:difficulty] != '0'*difficulty:
+            block.nonce+=1
+            block.Hash = block.calculateHash()
+        print(block.nonce, block.Hash)
+        return
 
     def start_threads(self, listener, workers=4):
         print("here")
@@ -219,58 +206,57 @@ class Admin:                #Miner
 # pickle.dump(blocks, f)
 # f.close()
 ad = Admin()
-# # print("After initialisation")
-# # ad.createUser("Daksh", "Nobody")
-# # print("After create User")
-# f = open("Users.txt", "rb")
-# users = pickle.load(f)
-# for i in range(0,len(users)):
-#     print(users[i].timestamp, users[i].username, users[i].password, users[i].blockChain)
-#     print(users[i].verifyBlockChain())
+# # # print("After initialisation")
+# # # ad.createUser("Daksh", "Nobody")
+# # # print("After create User")
+# # f = open("Users.txt", "rb")
+# # users = pickle.load(f)
+# # for i in range(0,len(users)):
+# #     print(users[i].timestamp, users[i].username, users[i].password, users[i].blockChain)
+# #     print(users[i].verifyBlockChain())
+# # f.close()
+# f = open('BlockChain.txt', 'rb')
+# blocks = pickle.load(f)
+# for i in range(0,len(blocks)):
+#     print(blocks[i].data, blocks[i].timestamp, blocks[i].Hash, blocks[i].prevHash)
 # f.close()
+# # print(Admin().power(2, 5, 11))
+
+# # print(users[1].verifyBlockChain())
+
+# val = {"Name":'Kriti', "Age":20}
+# result = json.dumps(val)
+# # print(result)
+# # bl = Block(result)
+# f = open('BlockChain.txt', 'rb')
+# blocks = pickle.load(f)
+# f.close()
+# prevHash = blocks[-1].Hash
+# block = Block(result, prevHash)
+# print(block.data, block.timestamp, block.Hash, block.prevHash)
 f = open('BlockChain.txt', 'rb')
 blocks = pickle.load(f)
-for i in range(0,len(blocks)):
-    print(blocks[i].data, blocks[i].timestamp, blocks[i].Hash, blocks[i].prevHash)
 f.close()
-# print(Admin().power(2, 5, 11))
-
-# print(users[1].verifyBlockChain())
-
-val = {"Name":'Kriti', "Age":20}
+val = {"Name":'Hardik', "Age":22}
 result = json.dumps(val)
 # print(result)
-# bl = Block(result)
-f = open('BlockChain.txt', 'rb')
-blocks = pickle.load(f)
-f.close()
-prevHash = blocks[-1].Hash
-block = Block(result, prevHash)
-print(block.data, block.timestamp, block.Hash, block.prevHash)
+bl = Block(result, blocks[-1].Hash)
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect(('localhost', 5000))
 print('Client has been assigned socket name ', sock.getsockname())
-# sock.sendall(b'Hello server, we are using TCP protocol for communication')
+# # sock.sendall(b'Hello server, we are using TCP protocol for communication')
 reply = sock.recv(4096)
 print('The server said\n', repr(reply.decode()))
-data = pickle.dumps(block) ### new code
+data = pickle.dumps(bl) 
 sock.sendall(struct.pack("L", len(data))+data)
 reply = sock.recv(4096)
-iterations = reply.decode().split()
-iterations = int(iterations[-1])
-
-print('iterations are ',iterations)
-while iterations:
-    sock.sendall((str(2) + " " + str(10) + " " + str(7)).encode())
-    b = sock.recv(4096)
-    b = b.decode()
-    b = b.split()
-    print(b[0])
-    b = int(b[0])
-    print('b is ',b)
-    s = (7+5*b)%10
-    sock.sendall((str(s) + " ").encode())
-    print(type(b))
-    iterations-=1
 sock.close()
+
+f = open('BlockChain.txt', 'rb')
+blocks = pickle.load(f)
+for i in range(0,len(blocks)):
+    print(blocks[i].data, blocks[i].timestamp, blocks[i].Hash, blocks[i].prevHash, 'nonce: ', blocks[i].nonce)
+f.close()
+
+# ad.mineBlock(bl, 5)
