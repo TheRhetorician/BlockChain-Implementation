@@ -2,6 +2,16 @@
 import random,math
 
 class RSA:
+    first_primes_list =   [2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
+                                31, 37, 41, 43, 47, 53, 59, 61, 67, 
+                                71, 73, 79, 83, 89, 97, 101, 103, 
+                                107, 109, 113, 127, 131, 137, 139, 
+                                149, 151, 157, 163, 167, 173, 179, 
+                                181, 191, 193, 197, 199, 211, 223,
+                                227, 229, 233, 239, 241, 251, 257,
+                                263, 269, 271, 277, 281, 283, 293,
+                                307, 311, 313, 317, 331, 337, 347, 349]
+
     def __init__(self):
         p  = self.getPrime()
         print(p)
@@ -11,6 +21,7 @@ class RSA:
         # p=7
         # q=13
         n = p*q
+        print('n is :', n)
         e = self.getE(p,q)
         print("this is e : ", e)
         self.pub = (n,e)
@@ -28,15 +39,6 @@ class RSA:
     
         
         # Pre generated primes
-        self.first_primes_list = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
-                            31, 37, 41, 43, 47, 53, 59, 61, 67, 
-                            71, 73, 79, 83, 89, 97, 101, 103, 
-                            107, 109, 113, 127, 131, 137, 139, 
-                            149, 151, 157, 163, 167, 173, 179, 
-                            181, 191, 193, 197, 199, 211, 223,
-                            227, 229, 233, 239, 241, 251, 257,
-                            263, 269, 271, 277, 281, 283, 293,
-                            307, 311, 313, 317, 331, 337, 347, 349]
     def RSA(self, text , num , key):
         return pow(text, key, num)
     def nBitRandom(self, n):
@@ -51,7 +53,7 @@ class RSA:
     
             # Test divisibility by pre-generated 
             # primes
-            for divisor in slef.first_primes_list:
+            for divisor in self.first_primes_list:
                 if pc % divisor == 0 and divisor**2 <= pc:
                     break
             else: return pc
@@ -83,7 +85,7 @@ class RSA:
 
     def getPrime(self, ):
         while True:
-            n = 512
+            n = 128
             prime_candidate = self.getLowLevelPrime(n)
             if not self.isMillerRabinPassed(prime_candidate):
                 continue
@@ -128,7 +130,7 @@ class RSA:
 #     print(C)
 #     D = RSA(C , p*q , d)
 #     print(D)
-
+rsa = RSA()
 
 
     

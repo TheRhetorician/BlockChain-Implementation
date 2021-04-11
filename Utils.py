@@ -7,7 +7,8 @@ import socket
 from threading import Thread
 import os, sys
 import random
-
+from RSA import RSA
+prKey = (98581262173360837326167111125113695068362686677036762762847714161386363356381, 39432504869344334930466844450045478027093153642958253734301565008685708450381)
 IP =   [58, 50, 42, 34, 26, 18, 10, 2, 
         60, 52, 44, 36, 28, 20, 12, 4, 
         62, 54, 46, 38, 30, 22, 14, 6, 
@@ -262,6 +263,7 @@ def makDES(pt, key):
 class Block:
     def __init__(self, data, prevHash='', nonce = 0):
         self.data = data
+        self.jsonData = json.dumps(data)
         self.timestamp = datetime.datetime.now().isoformat()
         self.prevHash = prevHash
         self.nonce = nonce
@@ -269,7 +271,7 @@ class Block:
         print(self.Hash, len(self.Hash))
 
     def calculateHash(self):
-        return hashlib.sha256((self.timestamp + self.prevHash + self.data + str(self.nonce)).encode()).hexdigest()
+        return hashlib.sha256((self.timestamp + self.prevHash + self.jsonData + str(self.nonce)).encode()).hexdigest()
 
     def convertToDES(self, pt):
         return makDES(pt, "133457799BBCDFF1")
@@ -280,6 +282,7 @@ class Users:
         self.username = username
         self.password = hashlib.sha256(password.encode()).hexdigest()
         self.blockChain = []
+        self.serverPubKey = ''
 
     def createBlock(self, data):
         return Block(json.dumps(data))
@@ -329,7 +332,6 @@ class Admin:                #Miner
             user = self.createUser('Genesis', 'admin')
             pickle.dump([user], f)
             f.close()
-
 
     def createUser(self, username, password):
         print("Inside createUser")
@@ -395,7 +397,30 @@ class Admin:                #Miner
         while True:
             sock, address = listener.accept()
             print('Accepted connection from {}'.format(address))
+            ans = self.authenticate(sock)
+            if not ans:
+                sock.sendall('Authentication Failed'.encode())
+                continue
             self.handle_conversation(sock,address)
+
+    def authenticate(self, sock):
+        data = sock.recv(4096)
+        data = data.decode()
+        data = data.split()
+        username = data[0]
+        password = data[1]
+        rsa = RSA()
+        f = open('Users.txt', 'rb')
+        users = pickle.load(f)
+        f.close()
+        for user in users:
+            if user.username == username:
+                currUser = user
+        pt = rsa.RSA(password, prKey[0], prKey[1])
+        hashedPT = hashlib.sha256(pt.encode()).hexdigest()
+        if not hashedPT == user.password:
+            return False
+        return True
 
     def handle_conversation(self, sock, address):
         try:
@@ -451,8 +476,8 @@ class Admin:                #Miner
         return
 
     
-ans = makDES("00000279fda7ec2ba11ea26aa439a65f1ec2668703dc3dd2ad74987d5bbaef69".upper(), "133457799BBCDFF1")
-print(ans)
+# ans = makDES("00000279fda7ec2ba11ea26aa439a65f1ec2668703dc3dd2ad74987d5bbaef69".upper(), "133457799BBCDFF1")
+# print(ans)
 
 # val = {"Name":'Sristi', "Age":21}
 # result = json.dumps(val)
@@ -517,4 +542,7 @@ print(ans)
 # f.close()
 
 # ad.mineBlock(bl, 5)
-
+# val = {"Name":'Sristi', "Age":21}
+# result = json.dumps(val)
+# print(result)
+# print(result["Name"])
