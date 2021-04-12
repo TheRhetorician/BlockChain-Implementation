@@ -17,7 +17,8 @@ sock.connect(('localhost', 5000))
 print('Client has been assigned socket name ', sock.getsockname())
 print(username)
 sock.sendall(username.encode())
-
+reply = sock.recv(4096)
+print(reply.decode())
 pswd = pickle.dumps(password)
 sock.sendall(struct.pack("L", len(pswd))+pswd)
 
@@ -43,9 +44,15 @@ if reply == 'Send Block':
         if user.username == username:
             currUser = user
             break
-    prevHash = currUser.blockChain[-1].Hash
+    f = open('BlockChain.txt', 'rb')
+    blocks = pickle.load(f)
+    f.close()
+    prevHash = blocks[-1].Hash
     block = Block(fields, prevHash)
     data = pickle.dumps(block)
     sock.sendall(struct.pack("L", len(data))+data)
+    reply = sock.recv(4096)
+    reply = reply.decode()
+    print(repr(reply))
 
 sock.close()

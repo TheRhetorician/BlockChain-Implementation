@@ -14,10 +14,14 @@ if __name__ =='__main__':
         '3':'View Current BlockChain',
         '4':'View Admin\'s Public Key'
     }
-    print(choicesDict)
-    inp = input("Enter your choice, q to quit: ")
 
     while True:
+        # print(choicesDict)
+        print('1', choicesDict['1'])
+        print('2', choicesDict['2'])
+        print('3', choicesDict['3'])
+        print('4', choicesDict['4'])
+        inp = input("Enter your choice, q to quit: ")
         if inp=='1':
             username = input("\tEnter Username: ")
             password = getpass.getpass(prompt="\tEnter Password: ")
@@ -33,11 +37,10 @@ if __name__ =='__main__':
             blocks = pickle.load(f)
             f.close()
             for block in blocks:
-                print(f'{block.data} , {block.timestamp}')
+                print(f'{block.data} , {block.timestamp} , {block.Hash} , {block.prevHash}')
         elif inp=='4':
             print(f'Public Key is: {pubKey}')
         elif inp=='q':
             break
-        inp = input("Enter your choice, q to quit: ")
     exit(0)
 

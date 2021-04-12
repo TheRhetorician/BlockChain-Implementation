@@ -248,9 +248,9 @@ def DES(pt, key):
         rkb.append(round_key)
         rk.append(bin2hex(round_key))
     
-    print("Encryption")
+    # print("Encryption")
     cipher_text = bin2hex(encrypt(pt, rkb, rk))
-    print("Cipher Text : ",cipher_text)
+    # print("Cipher Text : ",cipher_text)
     return cipher_text
 
 def makDES(pt, key):
@@ -291,6 +291,7 @@ class Users:
         print("in verify")
         f = open("BlockChain.txt", 'rb')
         blocks = pickle.load(f)
+        f.close()
         # blocks = self.blockChain
         print(currentBlock.prevHash)
         print(blocks[-1].Hash)
@@ -298,7 +299,6 @@ class Users:
             print("yes")
             return True
         # print(blocks[-1].timestamp, blocks[-1].data, blocks[-1].Hash, blocks[-1].prevHash)
-        f.close()
         return False
 
     def verifyBlockChain(self):
@@ -359,14 +359,14 @@ class Admin:                #Miner
         transactbool = 0
         hashbool = 0
         for i in range(0,len(users)):
-            # transact = users[i].verifyTransaction(block)
+            transact = users[i].verifyTransaction(block)
             hashing = users[i].verifyPoW(block)
-            # if transact:
-            #     transactbool+=1
+            if transact:
+                transactbool+=1
             if hashing:
                 hashbool+=1
         print(transactbool, hashbool)
-        if hashbool > len(users)/2: #and transactbool > len(users)/2 and :
+        if hashbool > len(users)/2 and transactbool > len(users)/2 :
             return True
         return False
 
@@ -405,9 +405,10 @@ class Admin:                #Miner
 
     def authenticate(self, sock):
         data = sock.recv(4096)
+        print(data)
         username = data.decode()
-        print(username)
-        
+        sock.sendall('Username Received'.encode())
+
         data = b''
         payload_size = struct.calcsize("L")
         print("Expecting Password")
@@ -473,7 +474,7 @@ class Admin:                #Miner
         sock.sendall('Block has been added to the BlockChain'.encode())
         return True
 
-    def mineBlock(self, block, difficulty = 4):
+    def mineBlock(self, block, difficulty = 5):
         while block.Hash[:difficulty] != '0'*difficulty:
             block.nonce+=1
             block.Hash = block.calculateHash()
