@@ -14,19 +14,19 @@ class RSA:
 
     def __init__(self):
         p  = self.getPrime()
-        print(p)
+        # print(p)
         q  = self.getPrime()
-        print(q)
+        # print(q)
 
         # p=7
         # q=13
         n = p*q
-        print('n is :', n)
+        # print('n is :', n)
         e = self.getE(p,q)
-        print("this is e : ", e)
+        # print("this is e : ", e)
         self.pub = (n,e)
         d = self.getD(e, p , q)
-        print("this is d : ", d)
+        # print("this is d : ", d)
         self.priv = (n,d)
         # text = 5
         # print(text)
@@ -36,7 +36,17 @@ class RSA:
         # print(D)
         #return 
 
-    
+    def getEncryption(self, text, n, key):
+        pswd = []
+        for i in range(len(text)):
+            pswd.append(self.RSA(ord(text[i]), n, key))
+        return pswd
+
+    def getDecryption(self, text, n, key):
+        ct = ""
+        for val in text:
+            ct+=chr(self.RSA(val, n, key))
+        return ct
         
         # Pre generated primes
     def RSA(self, text , num , key):
@@ -90,7 +100,7 @@ class RSA:
             if not self.isMillerRabinPassed(prime_candidate):
                 continue
             else:
-                print(n, "bit prime is: \n", prime_candidate)
+                # print(n, "bit prime is: \n", prime_candidate)
                 break
         return prime_candidate
 

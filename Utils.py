@@ -268,7 +268,7 @@ class Block:
         self.prevHash = prevHash
         self.nonce = nonce
         self.Hash = self.convertToDES(self.calculateHash().upper())
-        print(self.Hash, len(self.Hash))
+        # print(self.Hash, len(self.Hash))
 
     def calculateHash(self):
         return hashlib.sha256((self.timestamp + self.prevHash + self.jsonData + str(self.nonce)).encode()).hexdigest()
@@ -311,7 +311,7 @@ class Users:
         return True
 
     def verifyPoW(self, block):
-        val = hashlib.sha256((block.timestamp + block.prevHash + block.data + str(block.nonce)).encode()).hexdigest()
+        val = hashlib.sha256((block.timestamp + block.prevHash + block.jsonData + str(block.nonce)).encode()).hexdigest()
         finalHash = makDES(val.upper(), "133457799BBCDFF1")
         if finalHash != block.Hash:
             return False
@@ -405,19 +405,33 @@ class Admin:                #Miner
 
     def authenticate(self, sock):
         data = sock.recv(4096)
-        data = data.decode()
-        data = data.split()
-        username = data[0]
-        password = data[1]
+        username = data.decode()
+        print(username)
+        
+        data = b''
+        payload_size = struct.calcsize("L")
+        print("Expecting Password")
+        while len(data) < payload_size:
+            data += sock.recv(4096)
+        packed_msg_size = data[:payload_size]
+        data = data[payload_size:]
+        msg_size = struct.unpack("L", packed_msg_size)[0]
+        while len(data) < msg_size:
+            data += sock.recv(4096)
+        block_data = data[:msg_size]
+        data = data[msg_size:]
+        password = pickle.loads(block_data)
         rsa = RSA()
+        password = rsa.getDecryption(password, prKey[0], prKey[1])
+
         f = open('Users.txt', 'rb')
         users = pickle.load(f)
         f.close()
         for user in users:
             if user.username == username:
                 currUser = user
-        pt = rsa.RSA(password, prKey[0], prKey[1])
-        hashedPT = hashlib.sha256(pt.encode()).hexdigest()
+                break
+        hashedPT = hashlib.sha256(password.encode()).hexdigest()
         if not hashedPT == user.password:
             return False
         return True
@@ -450,10 +464,10 @@ class Admin:                #Miner
         block_data = data[:msg_size]
         data = data[msg_size:]
         block = pickle.loads(block_data)
-        self.mineBlock(block)
         toProceed = self.checkData(block)
         if not toProceed:
             return False
+        self.mineBlock(block)
         print("PoW done by miner verified by consensus of users")
         self.addBlock(block)
         sock.sendall('Block has been added to the BlockChain'.encode())
@@ -488,15 +502,15 @@ class Admin:                #Miner
 # pickle.dump(blocks, f)
 # f.close()
 # ad = Admin()
-# # # print("After initialisation")
-# # # ad.createUser("Daksh", "Nobody")
-# # # print("After create User")
-# # f = open("Users.txt", "rb")
-# # users = pickle.load(f)
-# # for i in range(0,len(users)):
-# #     print(users[i].timestamp, users[i].username, users[i].password, users[i].blockChain)
-# #     print(users[i].verifyBlockChain())
-# # f.close()
+# # # # print("After initialisation")
+# # # # ad.createUser("Daksh", "Nobody")
+# # # # print("After create User")
+# f = open("Users.txt", "rb")
+# users = pickle.load(f)
+# for i in range(0,len(users)):
+#     print(users[i].timestamp, users[i].username, users[i].password, users[i].blockChain)
+#     # print(users[i].verifyBlockChain())
+# f.close()
 # f = open('BlockChain.txt', 'rb')
 # blocks = pickle.load(f)
 # for i in range(0,len(blocks)):
