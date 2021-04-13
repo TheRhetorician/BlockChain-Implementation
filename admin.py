@@ -42,8 +42,8 @@ if __name__ =='__main__':
         elif inp=='3':
             f = open('BlockChain.txt', 'rb')
             blocks = pickle.load(f)
-            df = pd.DataFrame([x.as_dict() for x in blocks])
-            print("\n",df,"\n")
+            # df = pd.DataFrame([x.as_dict() for x in blocks])
+            # print("\n",df,"\n")
             f.close()
             for block in blocks:
                 print(f'{block.username} , {block.data} , {block.timestamp} , {block.Hash} , {block.prevHash}')
@@ -78,7 +78,9 @@ if __name__ =='__main__':
             if len(transaction) == 0:
                 print("The user has indulged in no transactions yet!")
                 continue
-            print(repr(transaction))
+            # print(repr(transaction))
+            for i in transaction:
+                print("\t",i)
         elif inp=='5':
             print(f'Public Key is: {pubKey}')
         elif inp=='q':
