@@ -261,7 +261,8 @@ def makDES(pt, key):
     return a+b+c+d
 
 class Block:
-    def __init__(self, data, prevHash='', nonce = 0):
+    def __init__(self, data, username, prevHash='0', nonce = 0):
+        self.username = username
         self.data = data
         self.jsonData = json.dumps(data)
         self.timestamp = datetime.datetime.now().isoformat()
@@ -285,14 +286,14 @@ class Users:
         self.serverPubKey = ''
 
     def createBlock(self, data):
-        return Block(json.dumps(data))
+        return Block(data, self.username)
 
     def verifyTransaction(self, currentBlock):
         print("in verify")
-        f = open("BlockChain.txt", 'rb')
-        blocks = pickle.load(f)
-        f.close()
-        # blocks = self.blockChain
+        # f = open("BlockChain.txt", 'rb')
+        # blocks = pickle.load(f)
+        # f.close()
+        blocks = self.blockChain
         print(currentBlock.prevHash)
         print(blocks[-1].Hash)
         if currentBlock.prevHash == blocks[-1].Hash:
@@ -324,7 +325,7 @@ class Admin:                #Miner
         Thread(target=self.start_threads, args=(sock,)).start()
         if os.stat("BlockChain.txt").st_size == 0:
             f = open('BlockChain.txt', 'wb')
-            block = Block("Genesis", '0')
+            block = Block("Genesis", 'admin')
             pickle.dump([block], f)
             f.close()
         if os.stat("Users.txt").st_size == 0:
@@ -383,6 +384,9 @@ class Admin:                #Miner
         f.close()
         for i in range(0,len(users)):
             users[i].blockChain = blocks
+        f = open('Users.txt', 'wb')
+        pickle.dump(users, f)
+        f.close()
         return
 
     def create_socket(self, address):
@@ -405,8 +409,19 @@ class Admin:                #Miner
 
     def authenticate(self, sock):
         data = sock.recv(4096)
-        print(data)
         username = data.decode()
+        print(username)
+        f = open('Users.txt', 'rb')
+        users = pickle.load(f)
+        f.close()
+        currUser = ''
+        for user in users:
+            if user.username == username:
+                currUser = username
+                break
+        if currUser == '':
+            sock.sendall('Username not in record'.encode())
+            return False
         sock.sendall('Username Received'.encode())
 
         data = b''
@@ -465,10 +480,10 @@ class Admin:                #Miner
         block_data = data[:msg_size]
         data = data[msg_size:]
         block = pickle.loads(block_data)
+        self.mineBlock(block)
         toProceed = self.checkData(block)
         if not toProceed:
             return False
-        self.mineBlock(block)
         print("PoW done by miner verified by consensus of users")
         self.addBlock(block)
         sock.sendall('Block has been added to the BlockChain'.encode())

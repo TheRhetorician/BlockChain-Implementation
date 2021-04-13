@@ -48,7 +48,7 @@ if reply == 'Send Block':
     blocks = pickle.load(f)
     f.close()
     prevHash = blocks[-1].Hash
-    block = Block(fields, prevHash)
+    block = Block(fields, currUser.username, prevHash)
     data = pickle.dumps(block)
     sock.sendall(struct.pack("L", len(data))+data)
     reply = sock.recv(4096)
