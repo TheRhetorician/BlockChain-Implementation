@@ -8,6 +8,8 @@ from threading import Thread
 import os, sys
 import random
 from RSA import RSA
+import pandas as pd
+
 prKey = (98581262173360837326167111125113695068362686677036762762847714161386363356381, 39432504869344334930466844450045478027093153642958253734301565008685708450381)
 IP =   [58, 50, 42, 34, 26, 18, 10, 2, 
         60, 52, 44, 36, 28, 20, 12, 4, 
@@ -269,6 +271,8 @@ class Block:
         self.prevHash = prevHash
         self.nonce = nonce
         self.Hash = self.convertToDES(self.calculateHash().upper())
+    def as_dict(self):
+        return {'     Username': self.username, '        Data': self.data , '     Timestamp':self.timestamp, '    Hash:': self.Hash, '         Previous Hash':self.prevHash }
 
     def calculateHash(self):
         return hashlib.sha256((self.timestamp + self.prevHash + self.jsonData + str(self.nonce)).encode()).hexdigest()
@@ -283,6 +287,8 @@ class Users:
         self.password = hashlib.sha256(password.encode()).hexdigest()
         self.blockChain = []
         self.serverPubKey = ''
+    def as_dict(self):
+        return {'     Username': self.username, '        Timestamp': self.timestamp }
 
     def createBlock(self, data):
         return Block(data, self.username)
