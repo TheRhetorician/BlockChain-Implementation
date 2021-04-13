@@ -3,6 +3,9 @@ import socket
 import pickle
 import struct
 import getpass
+import pandas as pd
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
 pubKey = (98581262173360837326167111125113695068362686677036762762847714161386363356381, 5)
 
 
@@ -31,12 +34,16 @@ if __name__ =='__main__':
         elif inp=='2':
             f = open('Users.txt', 'rb')
             users = pickle.load(f)
+            df = pd.DataFrame([x.as_dict() for x in users])
+            print("\n",df,"\n")
             f.close()
-            for user in users:
-                print(f'Username: {user.username} , Timestamp: {user.timestamp}')
+            # for user in users:
+            #     print(f'Username: {user.username} , Timestamp: {user.timestamp}')
         elif inp=='3':
             f = open('BlockChain.txt', 'rb')
             blocks = pickle.load(f)
+            df = pd.DataFrame([x.as_dict() for x in blocks])
+            print("\n",df,"\n")
             f.close()
             for block in blocks:
                 print(f'{block.username} , {block.data} , {block.timestamp} , {block.Hash} , {block.prevHash}')

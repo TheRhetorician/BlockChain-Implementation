@@ -4,6 +4,7 @@ import getpass
 import socket
 import pickle, struct
 
+
 serverPubKey = (98581262173360837326167111125113695068362686677036762762847714161386363356381, 5)
 
 username = input("Enter Username: ")
