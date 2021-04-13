@@ -269,7 +269,6 @@ class Block:
         self.prevHash = prevHash
         self.nonce = nonce
         self.Hash = self.convertToDES(self.calculateHash().upper())
-        # print(self.Hash, len(self.Hash))
 
     def calculateHash(self):
         return hashlib.sha256((self.timestamp + self.prevHash + self.jsonData + str(self.nonce)).encode()).hexdigest()
@@ -290,21 +289,14 @@ class Users:
 
     def verifyTransaction(self, currentBlock):
         print("in verify")
-        # f = open("BlockChain.txt", 'rb')
-        # blocks = pickle.load(f)
-        # f.close()
         blocks = self.blockChain
         print(currentBlock.prevHash)
         print(blocks[-1].Hash)
         if currentBlock.prevHash == blocks[-1].Hash:
-            print("yes")
             return True
-        # print(blocks[-1].timestamp, blocks[-1].data, blocks[-1].Hash, blocks[-1].prevHash)
         return False
 
     def verifyBlockChain(self):
-        # f = open("BlockChain.txt", 'rb')
-        # blocks = pickle.load(f)
         blocks = self.blockChain
         for i in range(1,len(blocks)):
             if blocks[i].prevHash != blocks[i-1].Hash:
@@ -504,75 +496,3 @@ class Admin:                #Miner
         for i in range(workers):
             Thread(target=self.accept_forever, args=t).start()
         return
-
-    
-# ans = makDES("00000279fda7ec2ba11ea26aa439a65f1ec2668703dc3dd2ad74987d5bbaef69".upper(), "133457799BBCDFF1")
-# print(ans)
-
-# val = {"Name":'Sristi', "Age":21}
-# result = json.dumps(val)
-# # print(result)
-# # bl = Block(result)
-# blocks.append(block)
-# f = open('BlockChain.txt', 'wb')
-# pickle.dump(blocks, f)
-# f.close()
-# ad = Admin()
-# # # # print("After initialisation")
-# # # # ad.createUser("Daksh", "Nobody")
-# # # # print("After create User")
-# f = open("Users.txt", "rb")
-# users = pickle.load(f)
-# for i in range(0,len(users)):
-#     print(users[i].timestamp, users[i].username, users[i].password, users[i].blockChain)
-#     # print(users[i].verifyBlockChain())
-# f.close()
-# f = open('BlockChain.txt', 'rb')
-# blocks = pickle.load(f)
-# for i in range(0,len(blocks)):
-#     print(blocks[i].data, blocks[i].timestamp, blocks[i].Hash, blocks[i].prevHash)
-# f.close()
-# # print(Admin().power(2, 5, 11))
-
-# # print(users[1].verifyBlockChain())
-
-# val = {"Name":'Kriti', "Age":20}
-# result = json.dumps(val)
-# # print(result)
-# # bl = Block(result)
-# f = open('BlockChain.txt', 'rb')
-# blocks = pickle.load(f)
-# f.close()
-# prevHash = blocks[-1].Hash
-# block = Block(result, prevHash)
-# print(block.data, block.timestamp, block.Hash, block.prevHash)
-# f = open('BlockChain.txt', 'rb')
-# blocks = pickle.load(f)
-# f.close()
-# val = {"Name":'Hardik', "Age":22}
-# result = json.dumps(val)
-# # print(result)
-# bl = Block(result, blocks[-1].Hash)
-
-# sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# sock.connect(('localhost', 5000))
-# print('Client has been assigned socket name ', sock.getsockname())
-# # # sock.sendall(b'Hello server, we are using TCP protocol for communication')
-# reply = sock.recv(4096)
-# print('The server said\n', repr(reply.decode()))
-# data = pickle.dumps(bl) 
-# sock.sendall(struct.pack("L", len(data))+data)
-# reply = sock.recv(4096)
-# sock.close()
-
-# f = open('BlockChain.txt', 'rb')
-# blocks = pickle.load(f)
-# for i in range(0,len(blocks)):
-#     print(blocks[i].data, blocks[i].timestamp, blocks[i].Hash, blocks[i].prevHash, 'nonce: ', blocks[i].nonce)
-# f.close()
-
-# ad.mineBlock(bl, 5)
-# val = {"Name":'Sristi', "Age":21}
-# result = json.dumps(val)
-# print(result)
-# print(result["Name"])
