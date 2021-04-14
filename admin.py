@@ -29,6 +29,17 @@ if __name__ =='__main__':
         inp = input("Enter your choice, q to quit: ")
         if inp=='1':
             username = input("\tEnter Username: ")
+            f = open('Users.txt', 'rb')
+            users = pickle.load(f)
+            f.close()
+            flag = 0
+            for user in users:
+                if user.username.lower() == username.lower():
+                    print("Username already exists!")
+                    flag = 1
+                    break
+            if flag == 1:
+                continue
             password = getpass.getpass(prompt="\tEnter Password: ")
             ad.createUser(username, password)
         elif inp=='2':
